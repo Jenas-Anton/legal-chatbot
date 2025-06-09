@@ -4,10 +4,44 @@ import faiss
 import streamlit as st
 import numpy as np
 from utils.extractors import extract_case_parts
+import pickle
+import os
 import re
 
 @st.cache_resource
 def load_combined_datasets():
+    """Load datasets from local files if available, otherwise from Hugging Face"""
+    # Check for cached files in the parent directory
+    parent_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+    questions_path = os.path.join(parent_dir, "questions.pkl")
+    answers_path = os.path.join(parent_dir, "answers.pkl")
+    index_path = os.path.join(parent_dir, "faiss_index.index")
+    
+    # Try loading from local files first
+    if (os.path.exists(questions_path) and 
+        os.path.exists(answers_path) and 
+        os.path.exists(index_path)):
+        
+        st.info("📂 Loading cached datasets from local files...")
+        
+        # Load questions and answers
+        with open(questions_path, "rb") as f:
+            questions = pickle.load(f)
+        with open(answers_path, "rb") as f:
+            answers = pickle.load(f)
+            
+        # Load FAISS index
+        index = faiss.read_index(index_path)
+        
+        # Load sentence transformer
+        embedder = SentenceTransformer("law-ai/InLegalBERT")
+        
+        st.success("✅ Successfully loaded cached datasets")
+        return questions, answers, embedder, index, [{"name": "Cached Dataset", "count": len(questions)}]
+    
+    # If local files not found, load from Hugging Face
+    st.warning("⚠️ Local files not found. Loading from Hugging Face...")
+    
     datasets = [
         "santoshtyss/indian_courts_cases",
         "rishiai/indian-court-judgements-and-its-summaries",
@@ -23,13 +57,23 @@ def load_combined_datasets():
             answers.extend(a)
             info.append({"name": source, "count": len(q)})
     
-    # ✅ Use InLegalBERT for better legal-domain embeddings
+    # Create embeddings and index
+    st.info("🧠 Creating embeddings and building index...")
     embedder = SentenceTransformer("law-ai/InLegalBERT")
     embeddings = embedder.encode(questions, show_progress_bar=True)
     
     index = faiss.IndexFlatL2(embeddings.shape[1])
     index.add(np.array(embeddings, dtype="float32"))
 
+    # Save files for future use
+    st.info("💾 Saving datasets for future use...")
+    with open(questions_path, "wb") as f:
+        pickle.dump(questions, f)
+    with open(answers_path, "wb") as f:
+        pickle.dump(answers, f)
+    faiss.write_index(index, index_path)
+
+    st.success("✅ Successfully loaded and cached datasets")
     return questions, answers, embedder, index, info
 
 def load_dataset_specific(name):

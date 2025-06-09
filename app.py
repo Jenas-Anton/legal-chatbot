@@ -32,32 +32,43 @@ except Exception as e:
     st.error(f"❌ Error loading datasets: {str(e)}")
     st.stop()
 
-# Query interface
-st.subheader("💬 Ask Your Legal Question")
-examples = [
-    "What are the grounds for divorce under Hindu Marriage Act?",
-    "How to file for anticipatory bail in 498A case?",
-    "What are consumer rights under Consumer Protection Act?",
-    "Property dispute resolution in India",
-    "Rights of accused during police custody"
-]
+# Create tabs for different functionalities
+tab1, tab2 = st.tabs(["📝 Legal Question Analysis", "📄 Case Prediction"])
 
-query = st.text_area("Enter your legal question:", height=100, placeholder="e.g., What are the legal remedies for breach of contract?")
-for example in examples:
-    if st.button(example):
-        query = example
-        st.experimental_rerun()
+with tab1:
+    st.subheader("💬 Ask Your Legal Question")
+    query = st.text_area("Enter your legal question or scenario", height=150)
+    analyze_button = st.button("Analyze Question")
 
-col1, col2 = st.columns(2)
+    if analyze_button and query and api_key:
+        start_time = time.time()
+        with st.spinner("Searching legal database..."):
+            similar_cases = search_similar_cases(query, index, questions, answers, num_cases)
 
-with col1:
-    analyze_button = st.button("🔍 Analyze Legal Question")
-with col2:
-    predict_button = st.button("🎯 Predict Case Outcome")
+        with st.spinner("Generating summaries..."):
+            summarized_cases = [
+                {"summary": generate_case_summary(c['question'], c['answer'], api_key), "similarity": c['similarity']}
+                for c in similar_cases
+            ]
 
-# Handle document upload for prediction
-if predict_button:
-    st.subheader("📄 Upload Legal Document")
+        with st.spinner("Generating analysis..."):
+            analysis = generate_answer(query, similar_cases, api_key)
+
+        st.success(f"✅ Completed in {time.time() - start_time:.2f} seconds")
+        st.subheader("📋 Legal Analysis")
+        st.markdown(f'<div class="answer-box">{analysis}</div>', unsafe_allow_html=True)
+
+        st.subheader("📚 Similar Cases Found (Summarized)")
+        for i, case in enumerate(summarized_cases, 1):
+            with st.expander(f"Case {i} - Similarity: {case['similarity']:.1f}%"):
+                st.markdown(f'<div class="case-item">{case["summary"]}</div>', unsafe_allow_html=True)
+
+    elif analyze_button:
+        if not query: st.error("Please enter a legal question")
+        if not api_key: st.error("Please enter your Gemini API key")
+
+with tab2:
+    st.subheader("📄 Upload Case Document")
     uploaded_file = st.file_uploader("Choose a file", type=['pdf', 'docx', 'doc'])
     
     if uploaded_file and api_key:
@@ -77,79 +88,57 @@ if predict_button:
             os.unlink(tmp_path)
 
             # Get similar cases for context
-            similar_cases = search_similar_cases(document_text[:1000], embedder, index, questions, answers, num_cases)
-            summarized_cases = [
-                {"summary": generate_case_summary(c['question'], c['answer'], api_key), "similarity": c['similarity']}
-                for c in similar_cases
-            ]
+            with st.spinner("Finding similar cases..."):
+                similar_cases = search_similar_cases(document_text[:1000], index, questions, answers, num_cases)
+                summarized_cases = [
+                    {"summary": generate_case_summary(c['question'], c['answer'], api_key), "similarity": c['similarity']}
+                    for c in similar_cases
+                ]
 
             # Make prediction
             with st.spinner("Analyzing document and making prediction..."):
                 prediction_result = st.session_state.case_predictor.predict_case(document_text, summarized_cases)
 
             # Display results
-            st.success("✅ Analysis Complete!")
+            st.subheader("📊 Prediction Results")
             
-            # Display prediction
-            st.subheader("🎯 Case Prediction")
-            st.write(f"**Predicted Outcome:** {prediction_result['prediction']}")
-            st.write(f"**Confidence:** {prediction_result['confidence']*100:.1f}%")
-
-            # Display feature importance
-            st.subheader("📊 Key Factors Influencing Prediction")
-            for feature in prediction_result['explanation']['top_features']:
-                effect_color = "green" if feature['effect'] == "positive" else "red"
-                st.markdown(
-                    f"- **{feature['feature']}**: "
-                    f"<span style='color:{effect_color}'>{feature['effect'].title()} impact "
-                    f"(importance: {abs(feature['importance']):.3f})</span>", 
-                    unsafe_allow_html=True
-                )
-
-            # Display similar cases
-            st.subheader("📚 Similar Cases Referenced")
+            # Prediction box with color based on confidence
+            confidence = prediction_result['confidence']
+            color = "green" if confidence > 0.7 else "orange" if confidence > 0.5 else "red"
+            st.markdown(f"""
+                <div style="padding: 1rem; border-radius: 0.5rem; border-left: 5px solid {color}; background-color: {color}10">
+                    <h3 style="color: {color}">Prediction: {prediction_result['prediction']}</h3>
+                    <p>Confidence: {confidence:.1%}</p>
+                </div>
+            """, unsafe_allow_html=True)
+            
+            # Show key factors
+            if prediction_result['explanation']['top_features']:
+                st.subheader("🔑 Key Factors")
+                for feature in prediction_result['explanation']['top_features']:
+                    effect = "Supporting" if feature['effect'] == "positive" else "Opposing"
+                    bg_color = "#90EE90" if feature['effect'] == "positive" else "#FFB6C1"  # Light green or light red
+                    border_color = "#228B22" if feature['effect'] == "positive" else "#DC143C"  # Dark green or crimson
+                    st.markdown(f"""
+                        <div style="padding: 0.75rem; margin: 0.5rem 0; border-radius: 0.5rem; background-color: {bg_color}; border: 2px solid {border_color}">
+                            <strong>{feature['feature']}</strong>: {effect} factor (weight: {abs(feature['importance']):.4f})
+                        </div>
+                    """, unsafe_allow_html=True)
+            
+            # Show all similar cases
+            st.subheader("📚 Similar Cases")
+            st.write(f"Showing all {len(summarized_cases)} similar cases used in analysis:")
             for i, case in enumerate(summarized_cases, 1):
                 with st.expander(f"Case {i} - Similarity: {case['similarity']:.1f}%"):
                     st.markdown(f'<div class="case-item">{case["summary"]}</div>', unsafe_allow_html=True)
 
         except Exception as e:
             st.error(f"Error processing document: {str(e)}")
-            if 'tmp_path' in locals():
-                try:
-                    os.unlink(tmp_path)
-                except:
-                    pass
+            if 'tmp_path' in locals() and os.path.exists(tmp_path):
+                os.unlink(tmp_path)
 
-    elif not api_key:
-        st.error("Please enter your Gemini API key in the sidebar")
-
-# Handle legal question analysis
-if analyze_button and query and api_key:
-    start_time = time.time()
-    with st.spinner("Searching legal database..."):
-        similar_cases = search_similar_cases(query, embedder, index, questions, answers, num_cases)
-
-    with st.spinner("Generating summaries..."):
-        summarized_cases = [
-            {"summary": generate_case_summary(c['question'], c['answer'], api_key), "similarity": c['similarity']}
-            for c in similar_cases
-        ]
-
-    with st.spinner("Generating analysis..."):
-        analysis = generate_answer(query, similar_cases, api_key)
-
-    st.success(f"✅ Completed in {time.time() - start_time:.2f} seconds")
-    st.subheader("📋 Legal Analysis")
-    st.markdown(f'<div class="answer-box">{analysis}</div>', unsafe_allow_html=True)
-
-    st.subheader("📚 Similar Cases Found (Summarized)")
-    for i, case in enumerate(summarized_cases, 1):
-        with st.expander(f"Case {i} - Similarity: {case['similarity']:.1f}%"):
-            st.markdown(f'<div class="case-item">{case["summary"]}</div>', unsafe_allow_html=True)
-
-elif analyze_button:
-    if not query: st.error("Please enter a legal question")
-    if not api_key: st.error("Please enter your Gemini API key")
+    elif uploaded_file:
+        st.error("Please enter your Gemini API key")
 
 st.markdown("---")
 st.markdown("*Disclaimer:* This tool provides general legal information only.\n\n*Data Sources:* Combined Hugging Face legal datasets.")

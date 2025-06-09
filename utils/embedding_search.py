@@ -1,14 +1,34 @@
-def search_similar_cases(query, embedder, index, questions, answers, k=5):
-    query_embedding = embedder.encode([query])
-    distances, indices = index.search(query_embedding.astype("float32"), k)
+import numpy as np
+from sentence_transformers import SentenceTransformer
 
-    results = []
-    for i, idx in enumerate(indices[0]):
-        similarity = max(0, 100 - (distances[0][i] * 20))
-        results.append({
-            "question": questions[idx],
-            "answer": answers[idx],
-            "similarity": similarity
-        })
+def get_embedder():
+    """Get the sentence transformer model for embeddings"""
+    return SentenceTransformer('all-MiniLM-L6-v2')
 
-    return results
+def search_similar_cases(query, index, questions, answers, k=5):
+    """Search for similar cases using FAISS index"""
+    try:
+        # Get embedder
+        embedder = get_embedder()
+        
+        # Get query embedding
+        query_embedding = embedder.encode([query], convert_to_tensor=True).cpu().numpy()
+        
+        # Search in FAISS index
+        D, I = index.search(query_embedding, k)
+        
+        # Format results
+        results = []
+        for i, (dist, idx) in enumerate(zip(D[0], I[0])):
+            similarity = 1 - dist  # Convert distance to similarity score
+            results.append({
+                'question': questions[idx],
+                'answer': answers[idx],
+                'similarity': similarity * 100  # Convert to percentage
+            })
+            
+        return results
+        
+    except Exception as e:
+        print(f"Error in search_similar_cases: {str(e)}")
+        return []
