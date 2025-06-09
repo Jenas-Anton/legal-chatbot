@@ -114,8 +114,20 @@ def export_to_pdf(text):
     pdf.add_page()
     pdf.set_auto_page_break(auto=True, margin=15)
     pdf.set_font("Arial", size=12)
+
+    # Decode the text to handle potential UTF-8 characters if any
+    # This is important for multi_cell to handle various characters correctly
     for line in text.splitlines():
-        pdf.multi_cell(0, 10, line)
+        # Using write(h, txt) can be more robust for paragraphs
+        # or you can stick with multi_cell, ensuring encoding is handled.
+        # For simplicity with multi_cell, let's just use it as is,
+        # but be aware of encoding issues if complex characters appear.
+        pdf.multi_cell(0, 10, line.encode('latin-1', 'replace').decode('latin-1')) # Encode/decode to handle non-ASCII safely
+
     buffer = BytesIO()
-    pdf.output(buffer)
+    # Get the PDF as a string using dest='S'
+    pdf_output_string = pdf.output(dest='S')
+    # Write the string (encoded to bytes) to the BytesIO buffer
+    buffer.write(pdf_output_string.encode('latin-1')) # Use 'latin-1' as FPDF often works with it
+    buffer.seek(0) # Rewind the buffer to the beginning
     return buffer
