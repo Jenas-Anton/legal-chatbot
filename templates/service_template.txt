@@ -1,0 +1,27 @@
+SERVICE AGREEMENT
+
+This Service Agreement is entered into on {{ agreement_date }} by and between {{ client_name }} ("Client") and {{ provider_name }} ("Service Provider").
+
+1. Scope of Services  
+The Service Provider shall perform the following services:  
+{{ service_description }}
+
+2. Compensation  
+Client agrees to pay {{ service_fee }} upon {{ payment_terms }}.
+
+3. Timeline  
+The services shall commence on {{ start_date }} and conclude on {{ end_date }}.
+
+4. Confidentiality  
+{{ clause_confidentiality }}
+
+5. Intellectual Property Rights  
+{{ clause_ip }}
+
+6. Dispute Resolution  
+{{ clause_dispute }}
+
+IN WITNESS WHEREOF, the parties have signed:
+
+Client: {{ client_name }}       |       Service Provider: {{ provider_name }}
+_______________________         |       _______________________

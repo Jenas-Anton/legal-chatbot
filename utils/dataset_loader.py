@@ -34,7 +34,7 @@ def load_combined_datasets():
         index = faiss.read_index(index_path)
         
         # Load sentence transformer
-        embedder = SentenceTransformer("law-ai/InLegalBERT")
+        embedder = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
         
         st.success("✅ Successfully loaded cached datasets")
         return questions, answers, embedder, index, [{"name": "Cached Dataset", "count": len(questions)}]
@@ -59,7 +59,7 @@ def load_combined_datasets():
     
     # Create embeddings and index
     st.info("🧠 Creating embeddings and building index...")
-    embedder = SentenceTransformer("law-ai/InLegalBERT")
+    embedder = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
     embeddings = embedder.encode(questions, show_progress_bar=True)
     
     index = faiss.IndexFlatL2(embeddings.shape[1])

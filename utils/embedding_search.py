@@ -17,14 +17,16 @@ def search_similar_cases(query, index, questions, answers, k=5):
         # Search in FAISS index
         D, I = index.search(query_embedding, k)
         
-        # Format results
+        # Convert distances to similarity scores between 0 and 100%
+        # Using similarity = 1 / (1 + distance)
         results = []
-        for i, (dist, idx) in enumerate(zip(D[0], I[0])):
-            similarity = 1 - dist  # Convert distance to similarity score
+        for dist, idx in zip(D[0], I[0]):
+            similarity = 1 / (1 + dist)  # similarity between 0 and 1
+            similarity_percent = similarity * 100
             results.append({
                 'question': questions[idx],
                 'answer': answers[idx],
-                'similarity': similarity * 100  # Convert to percentage
+                'similarity': similarity_percent
             })
             
         return results

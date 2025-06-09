@@ -1,0 +1,27 @@
+LEASE AGREEMENT
+
+This Lease Agreement is entered into on {{ agreement_date }} between {{ landlord_name }} ("Landlord") and {{ tenant_name }} ("Tenant").
+
+1. Property Address  
+{{ property_address }}
+
+2. Lease Term  
+The lease shall begin on {{ lease_start }} and end on {{ lease_end }}.
+
+3. Rent  
+Tenant agrees to pay {{ monthly_rent }} monthly on the {{ rent_due_date }} of each month.
+
+4. Security Deposit  
+Tenant shall pay a security deposit of {{ security_deposit }}.
+
+5. Maintenance Responsibilities  
+{{ clause_maintenance }}
+
+6. Termination & Renewal  
+{{ clause_termination }}
+
+7. Governing Law  
+{{ clause_jurisdiction }}
+
+Landlord: {{ landlord_name }}        |     Tenant: {{ tenant_name }}
+__________________________           |     __________________________

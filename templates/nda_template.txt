@@ -1,0 +1,26 @@
+NON-DISCLOSURE AGREEMENT
+
+This Agreement is entered into on {{ date }} by and between {{ party_a }} ("Disclosing Party") and {{ party_b }} ("Receiving Party").
+
+1. Definition of Confidential Information  
+"Confidential Information" includes but is not limited to business plans, technical data, financial information, and trade secrets.
+
+2. Obligations of Receiving Party  
+The Receiving Party agrees not to disclose or use any Confidential Information for any purpose other than {{ purpose }}.
+
+3. Exclusions from Confidential Information  
+Confidential Information does not include information that:
+- Was publicly known at the time of disclosure;
+- Becomes publicly known through no fault of the Receiving Party;
+- Is disclosed by a third party lawfully.
+
+4. Term  
+This Agreement shall remain in effect for {{ duration }} from the effective date.
+
+5. Jurisdiction  
+{{ clause_jurisdiction }}
+
+IN WITNESS WHEREOF, the parties have executed this Agreement on the date written above.
+
+{{ party_a }}          |         {{ party_b }}
+_________________      |     _________________

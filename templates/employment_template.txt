@@ -1,0 +1,26 @@
+EMPLOYMENT AGREEMENT
+
+This Agreement is made on {{ start_date }} between {{ employer_name }} ("Employer") and {{ employee_name }} ("Employee").
+
+1. Position & Duties  
+The Employee shall serve as {{ job_title }} and report to {{ supervisor_name }}.
+
+2. Compensation  
+Employee will be paid {{ salary }} per {{ pay_period }}.
+
+3. Work Hours & Location  
+Working hours are {{ work_hours }} at {{ work_location }}.
+
+4. Confidentiality  
+{{ clause_confidentiality }}
+
+5. Termination  
+This agreement may be terminated by either party with {{ notice_period }} written notice.
+
+6. Governing Law  
+{{ clause_jurisdiction }}
+
+Signed:
+
+Employer: {{ employer_name }}       |      Employee: {{ employee_name }}
+_________________________           |      _________________________
