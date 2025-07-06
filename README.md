@@ -55,7 +55,7 @@ A comprehensive AI-powered legal assistant built with Streamlit that provides ad
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
+   git clone <https://github.com/Jenas-Anton/legal-chatbot>
    cd verdict-ai
    ```
 
