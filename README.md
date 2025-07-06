@@ -2,6 +2,9 @@
 
 A comprehensive AI-powered legal assistant built with Streamlit that provides advanced legal document analysis, case outcome prediction, document summarization, and legal document generation capabilities.
 
+
+##System Architecture
+
 ## 🚀 Features
 
 ### 📝 Legal Question Analysis
